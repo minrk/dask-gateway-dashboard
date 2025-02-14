@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dask Clusters</title>
+  </head>
+  <body>
+    <h1>Dask Clusters</h1>
+    <ul id="clusters"></ul>
+    <script>
+      function getClusters() {
+        var baseURL = document.location.href;
+        // trailing slash
+        if (baseURL[baseURL.length - 1] !== "/") {
+          baseURL += "/";
+        }
+        clusters = await fetch(baseURL + "clusters");
+        console.log(clusters);
+        window.clusters = clusters;
+      }
+      getClusters();
+    </script>
+  </body>
+</html>
