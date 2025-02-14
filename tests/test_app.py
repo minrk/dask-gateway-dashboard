@@ -1,8 +1,10 @@
 from unittest import mock
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from dask_gateway_dashboard import list_clusters, app
+from dask_gateway_dashboard import app, list_clusters
+
 from .utils_test import temp_gateway
 
 

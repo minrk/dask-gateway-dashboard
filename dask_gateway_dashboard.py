@@ -15,7 +15,7 @@ log = logging.getLogger("uvicorn.error")
 
 class ClusterModel(TypedDict):
     name: str
-    dashboard_url: str
+    dashboard_link: str
     workers: int
     cores: float
 

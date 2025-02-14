@@ -41,4 +41,3 @@ repos:
     rev: v5.0.0
     hooks:
       - id: end-of-file-fixer
-      - id: requirements-txt-fixer
