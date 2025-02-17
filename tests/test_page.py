@@ -40,7 +40,7 @@ async def test_table(gateway, page: Page):
     table = page.get_by_role("table")
     table_body = table.locator("#clusters-body")
     await expect(table).to_be_visible()
-    columns = 5
+    columns = 6
     await expect(table.locator("thead").locator("th")).to_have_count(columns)
     await expect(table_body).to_be_empty()
     cluster = await gateway.new_cluster()
@@ -49,8 +49,8 @@ async def test_table(gateway, page: Page):
     await expect(table_body.locator("tr")).to_have_count(1)
     # columns match
     await expect(table_body.locator("tr").nth(0).locator("td")).to_have_count(columns)
-    # cluster name is in first cell
-    await expect(table_body.locator("td").nth(0)).to_contain_text(cluster.name)
+    # cluster name is in second cell
+    await expect(table_body.locator("td").nth(1)).to_contain_text(cluster.name)
 
     # start time is in last cell
     started_text = await table_body.locator("td").nth(columns - 1).inner_text()
@@ -60,3 +60,19 @@ async def test_table(gateway, page: Page):
     )
     # localized time
     assert started_text.startswith(f"{dt.day}.{dt.month}.{dt.year}")
+
+
+async def test_stop(gateway, page: Page):
+    await gateway.new_cluster()
+    await page.goto(base_url)
+    table = page.get_by_role("table")
+    table_body = table.locator("#clusters-body")
+    await expect(table).to_be_visible()
+    # one row
+    await expect(table_body.locator("tr")).to_have_count(1)
+    # click stop
+    await table.locator(".stop-link").click()
+    # expect stop
+    await expect(table_body.locator("tr")).to_have_count(0)
+    clusters = await gateway.list_clusters()
+    assert clusters == []
