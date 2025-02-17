@@ -8,6 +8,7 @@ from typing import TypedDict
 
 from dask.utils import format_bytes
 from dask_gateway import Gateway
+from dask_gateway.client import ClusterReport, ClusterStatus, GatewayCluster
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -19,6 +20,7 @@ app = FastAPI()
 
 class ClusterModel(TypedDict):
     name: str
+    status: str
     dashboard_link: str
     workers: int
     cores: float
@@ -26,20 +28,29 @@ class ClusterModel(TypedDict):
     started: float
 
 
-def make_cluster_model(cluster) -> ClusterModel:
+def make_cluster_model(cluster: GatewayCluster | ClusterReport) -> ClusterModel:
     """Make a single cluster model"""
     # derived from dask-labextension Manager
-    info = cluster.scheduler_info
-    cores = sum(d["nthreads"] for d in info["workers"].values())
-    workers = len(info["workers"])
-    memory = format_bytes(sum(d["memory_limit"] for d in info["workers"].values()))
+    if isinstance(cluster, ClusterReport):
+        workers = cores = 0
+        memory = "0 B"
+        started = int(cluster.start_time.timestamp())
+        status = cluster.status.name
+    else:
+        info = cluster.scheduler_info
+        status = "RUNNING"
+        started = info["started"]
+        cores = sum(d["nthreads"] for d in info["workers"].values())
+        workers = len(info["workers"])
+        memory = format_bytes(sum(d["memory_limit"] for d in info["workers"].values()))
     return {
         "name": cluster.name,
+        "status": status,
         "dashboard_link": cluster.dashboard_link,
         "workers": workers,
         "cores": cores,
         "memory": memory,
-        "started": info["started"],
+        "started": started,
     }
 
 
@@ -49,8 +60,11 @@ async def list_clusters() -> list[ClusterModel]:
     async with Gateway(asynchronous=True) as gateway:
         for cluster_info in await gateway.list_clusters():
             cluster_name = cluster_info.name
-            async with gateway.connect(cluster_name) as cluster:
-                cluster_model = make_cluster_model(cluster)
+            if cluster_info.status == ClusterStatus.RUNNING:
+                async with gateway.connect(cluster_name) as cluster:
+                    cluster_model = make_cluster_model(cluster)
+            else:
+                cluster_model = make_cluster_model(cluster_info)
             clusters.append(cluster_model)
     return clusters
 
@@ -106,3 +120,18 @@ async def get_clusters():
     """Return list of clusters as JSON"""
     clusters = await list_clusters()
     return JSONResponse(clusters)
+
+
+@app.delete("/clusters/{cluster_id}")
+async def stop_cluster(cluster_id: str):
+    """Stop a cluster"""
+    async with Gateway(asynchronous=True) as gateway:
+        try:
+            await gateway.get_cluster(cluster_id)
+        except ValueError:
+            return JSONResponse(
+                status_code=404, content={"message": f"No such cluster: {cluster_id}"}
+            )
+
+        await gateway.stop_cluster(cluster_id)
+    return JSONResponse({"status": "ok"})

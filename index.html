@@ -21,6 +21,9 @@
       td.cluster-link {
         word-break: break-all;
       }
+      .stop-link {
+        background-color: transparent;
+      }
       body {
         margin: auto;
       }
@@ -40,6 +43,7 @@
         <table id="clusters" class="pure-table pure-table-horizontal">
           <thead>
             <tr>
+              <th class="stop-header">Stop</th>
               <th class="cluster-header">Cluster</th>
               <th class="workers-header">Workers</th>
               <th class="cores-header">Cores</th>
@@ -52,26 +56,59 @@
       </div>
     </div>
     <script>
+      async function stopCluster(clusterName) {
+        var baseURL = document.location.href;
+        // trailing slash
+        if (baseURL[baseURL.length - 1] !== "/") {
+          baseURL += "/";
+        }
+        r = await fetch(baseURL + `clusters/${clusterName}`, {
+          method: "DELETE",
+        });
+        document.location.reload();
+      }
       function clusterRow(cluster) {
         // make a row for a cluster in the table
         const tr = document.createElement("tr");
+
+        const stopCell = document.createElement("td");
+        const stopLink = document.createElement("button");
+        stopLink.classList.add("stop-link");
+        stopLink.classList.add("pure-button");
+        stopLink.appendChild(document.createTextNode("🛑"));
+        stopLink.title = `Stop cluster ${cluster.name}"`;
+        stopLink.onclick = function () {
+          stopCluster(cluster.name);
+        };
+        stopCell.appendChild(stopLink);
+        tr.appendChild(stopCell);
+
         const clusterCell = document.createElement("td");
+        clusterCell.classList.add("cluster-link");
+
         const clusterLink = document.createElement("a");
         clusterLink.href = cluster.dashboard_link;
+        clusterLink.title = "Connect to cluster dashboard";
         const clusterName = document.createTextNode(cluster.name);
         clusterLink.appendChild(clusterName);
         clusterCell.appendChild(clusterLink);
-        clusterCell.classList.add("cluster-link");
+        clusterCell.appendChild(
+          document.createTextNode(` (${cluster.status.toLowerCase()})`),
+        );
         tr.appendChild(clusterCell);
+
         const workerCell = document.createElement("td");
         workerCell.appendChild(document.createTextNode(cluster.workers));
         tr.appendChild(workerCell);
+
         const coreCell = document.createElement("td");
         coreCell.appendChild(document.createTextNode(cluster.cores));
         tr.appendChild(coreCell);
+
         const memoryCell = document.createElement("td");
         memoryCell.appendChild(document.createTextNode(cluster.memory));
         tr.appendChild(memoryCell);
+
         const startedCell = document.createElement("td");
         const started = new Date(cluster.started * 1e3);
         startedCell.appendChild(
