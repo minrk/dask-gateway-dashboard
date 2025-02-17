@@ -2,22 +2,95 @@
 <html>
   <head>
     <title>Dask Clusters</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type="text/css">
+      .header {
+        text-align: center;
+      }
+      table#clusters {
+        width: 100%;
+      }
+      body {
+        max-width: 1024px;
+        margin: auto;
+      }
+    </style>
   </head>
   <body>
-    <h1>Dask Clusters</h1>
-    <ul id="clusters"></ul>
+    <div class="pure-g">
+      <div class="pure-u-md-1-6"></div>
+      <div class="pure-u-md-2-3 pure-u-1-1">
+        <div class="header">
+          <h1>Dask Clusters</h1>
+          <p>
+            Currently running dask clusters. Click the cluster name to take you
+            to the cluster's dashboard.
+          </p>
+        </div>
+        <table id="clusters" class="pure-table pure-table-horizontal">
+          <thead>
+            <tr>
+              <th>Cluster</th>
+              <th>Workers</th>
+              <th>Cores</th>
+              <th>Memory</th>
+            </tr>
+          </thead>
+          <tbody id="clusters-body"></tbody>
+        </table>
+      </div>
+    </div>
     <script>
-      function getClusters() {
+      function clusterRow(cluster) {
+        // make a row for a cluster in the table
+        const tr = document.createElement("tr");
+        const clusterCell = document.createElement("td");
+        const clusterLink = document.createElement("a");
+        clusterLink.href = cluster.dashboard_link;
+        const clusterName = document.createTextNode(cluster.name);
+        clusterLink.appendChild(clusterName);
+        clusterCell.appendChild(clusterLink);
+        tr.appendChild(clusterCell);
+        const workerCell = document.createElement("td");
+        workerCell.appendChild(document.createTextNode(cluster.workers));
+        tr.appendChild(workerCell);
+        const coreCell = document.createElement("td");
+        coreCell.appendChild(document.createTextNode(cluster.cores));
+        tr.appendChild(coreCell);
+        const memoryCell = document.createElement("td");
+        memoryCell.appendChild(document.createTextNode(cluster.memory));
+        tr.appendChild(memoryCell);
+        return tr;
+      }
+
+      async function updateClusters() {
+        /* fetch clusters and update the cluster table
+         */
         var baseURL = document.location.href;
         // trailing slash
         if (baseURL[baseURL.length - 1] !== "/") {
           baseURL += "/";
         }
-        clusters = await fetch(baseURL + "clusters");
-        console.log(clusters);
+        r = await fetch(baseURL + "clusters");
+        clusters = await r.json();
         window.clusters = clusters;
+        const clusterBody = document.getElementById("clusters-body");
+        clusterBody.innerHTML = "";
+        for (cluster of clusters) {
+          var tr = clusterRow(cluster);
+          clusterBody.appendChild(tr);
+        }
       }
-      getClusters();
+
+      updateClusters();
     </script>
   </body>
 </html>
