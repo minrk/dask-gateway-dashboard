@@ -1,5 +1,7 @@
 import logging
 import os
+import secrets
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TypedDict
@@ -21,6 +23,7 @@ class ClusterModel(TypedDict):
     workers: int
     cores: float
     memory: str
+    started: float
 
 
 def make_cluster_model(cluster) -> ClusterModel:
@@ -36,6 +39,7 @@ def make_cluster_model(cluster) -> ClusterModel:
         "workers": workers,
         "cores": cores,
         "memory": memory,
+        "started": info["started"],
     }
 
 
@@ -66,13 +70,14 @@ class _MockCluster:
     @property
     def scheduler_info(self) -> dict:
         return {
+            "started": time.time() - 3600,
             "workers": {
                 f"id-{n}": {
                     "nthreads": self.cores_per_worker,
-                    "memory_limit": 1_000_000_000,
+                    "memory_limit": 2 << 30,
                 }
                 for n in range(self.workers)
-            }
+            },
         }
 
 
@@ -80,7 +85,7 @@ async def _mock_list_clusters() -> list[ClusterModel]:
     """mock cluster list for UI development"""
     clusters = []
     for i in range(3):
-        cluster = _MockCluster(workers=i, name=f"cluster {i}")
+        cluster = _MockCluster(workers=i, name=f"username.{secrets.token_hex(16)}")
         clusters.append(make_cluster_model(cluster))
     return clusters
 
