@@ -42,6 +42,7 @@
               <th>Workers</th>
               <th>Cores</th>
               <th>Memory</th>
+              <th>Started</th>
             </tr>
           </thead>
           <tbody id="clusters-body"></tbody>
@@ -68,6 +69,14 @@
         const memoryCell = document.createElement("td");
         memoryCell.appendChild(document.createTextNode(cluster.memory));
         tr.appendChild(memoryCell);
+        const startedCell = document.createElement("td");
+        const started = new Date(cluster.started * 1e3);
+        startedCell.appendChild(
+          document.createTextNode(
+            started.toLocaleString(navigator.language || "en"),
+          ),
+        );
+        tr.appendChild(startedCell);
         return tr;
       }
 
