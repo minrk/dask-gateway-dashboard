@@ -27,7 +27,13 @@ Source = "https://github.com/minrk/dask-gateway-dashboard"
 Tracker = "https://github.com/minrk/dask-gateway-dashboard/issues"
 
 [project.optional-dependencies]
-test = ["dask-gateway-server[local]", "pytest", "pytest-asyncio", "pytest-cov"]
+test = [
+  "dask-gateway-server[local]",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-cov",
+  "pytest-playwright-asyncio",
+]
 
 
 [tool.setuptools]
@@ -48,10 +54,12 @@ dependencies = { file = "requirements.in" }
 fallback_version = "0.0.0"
 
 [tool.pytest.ini_options]
-addopts = "--verbose --color=yes --durations=10"
+addopts = "--verbose --color=yes --durations=10 --browser firefox -p no:pytest-playwright"
 testpaths = ["tests"]
 asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
+# needs to be 'session' for pytest-playwright
+asyncio_default_fixture_loop_scope = "session"
+
 
 [tool.ruff.format]
 
