@@ -33,6 +33,7 @@ test = [
   "pytest-asyncio",
   "pytest-cov",
   "pytest-playwright-asyncio",
+  "pytest-timeout",
 ]
 
 
@@ -57,6 +58,7 @@ fallback_version = "0.0.0"
 addopts = "--verbose --color=yes --durations=10 --browser firefox -p no:pytest-playwright"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+timeout = 60
 # needs to be 'session' for pytest-playwright
 asyncio_default_fixture_loop_scope = "session"
 

@@ -6,6 +6,7 @@ from uvicorn import Config, Server
 
 from dask_gateway_dashboard import app
 
+# asyncio_default_test_loop_scope = session in pytest-asyncio 0.26
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 host: str = "127.0.0.1"

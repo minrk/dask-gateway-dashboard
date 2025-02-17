@@ -1,4 +1,9 @@
+import pytest
+
 from dask_gateway_dashboard import list_clusters
+
+# asyncio_default_test_loop_scope = session in pytest-asyncio 0.26
+pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 
 async def test_list_clusters(gateway):
