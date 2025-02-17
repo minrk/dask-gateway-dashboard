@@ -1,5 +1,6 @@
 import logging
 import os
+import secrets
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -84,7 +85,7 @@ async def _mock_list_clusters() -> list[ClusterModel]:
     """mock cluster list for UI development"""
     clusters = []
     for i in range(3):
-        cluster = _MockCluster(workers=i, name=f"cluster {i}")
+        cluster = _MockCluster(workers=i, name=f"username.{secrets.token_hex(16)}")
         clusters.append(make_cluster_model(cluster))
     return clusters
 
